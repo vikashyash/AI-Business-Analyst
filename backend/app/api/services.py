@@ -1,30 +1,31 @@
+from pathlib import Path
+import re
 import pdfplumber
 import pandas as pd
-import re
 
-def detect_file_type(file):
-    if file.endswith("pdf"):
-        return "PDF"
-    elif file.endswith("csv"):
-        return "CSV"
-    else:
-        return "Text"
-    
-def parse_pdf(file):
-    text = ""
-    with pdfplumber.open(file) as pdf:
-        for page_num, page in enumerate(pdf.pages):
-            text += page.extract_text() + "\n"
-    return text
+_TYPES = {".pdf": "PDF", ".csv": "CSV", ".txt": "Text", ".text": "Text"}
 
-def parse_csv(file):
-    df = pd.read_csv(file)
-    return df
+def detect_file_type(path):
+    return _TYPES.get(Path(path).suffix.lower(), "Text")
 
-def parse_txt(file):
-    return file.read().decode("utf-8")
+def parse_pdf(path):
+    with pdfplumber.open(path) as pdf:
+        return "\n".join(filter(None, (p.extract_text() for p in pdf.pages)))
+
+def parse_csv(path):
+    return pd.read_csv(path)
+
+def parse_txt(path):
+    return Path(path).read_text(encoding="utf-8")
 
 def clean_text(text):
-    text = re.sub(r'\s+', ' ', text)
-    text = text.strip()
-    return text
+    return re.sub(r"\s+", " ", text or "").strip()
+
+def parse_file(path):
+    path, kind = str(path), detect_file_type(path)
+    if kind == "PDF": return kind, clean_text(parse_pdf(path))
+    if kind == "CSV": return kind, parse_csv(path)
+    return kind, clean_text(parse_txt(path))
+
+def is_supported(path):
+    return Path(path).suffix.lower() in _TYPES
