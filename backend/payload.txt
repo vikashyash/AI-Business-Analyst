@@ -1,0 +1,14 @@
+
+1.analyze
+{
+    "document_id":"31b9117c-dc62-4759-b72d-57c67ea5f17e",
+    "session_id":"1",
+    "question":"list all the columns and sub columns in the data"
+}
+
+2.create_workspace:
+{
+    "name":"Workspace-1",
+    "description":"test-flow"
+}
+
