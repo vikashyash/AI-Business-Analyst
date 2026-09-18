@@ -6,7 +6,7 @@ import uvicorn,os
 from sentence_transformers import SentenceTransformer
 from langchain_google_genai import ChatGoogleGenerativeAI
 from app.api.workspaces.workspace_store import(create_workspace,list_workspaces,get_workspace,attach_document)
-from app.api.workspaces.models import CreateWorkspaceBody,WorkspaceAnalyzeBody,TaskBody,RunBody
+from app.api.workspaces.models import CreateWorkspaceBody,WorkspaceAnalyzeBody,TaskBody,RunBody # pydantic class
 from app.api.agents.orchestrator import run_orchestrator
 from app.api.tasks.run_tasks import run_ba_task
 
@@ -26,7 +26,7 @@ class AnalyzeBody(BaseModel):
     session_id: str
     question: str
 
-# reusable function for both chat and workspace.
+# reusable function for both chat and workspace that retrieves from rag, analyse from csv.
 async def _analyze_document(doc: dict, session_id: str, question: str, workspace_id: str = None):
     try:
         llm=_llm()
@@ -69,15 +69,23 @@ async def analyze(body: AnalyzeBody):
     except Exception as e:
         raise HTTPException(500, detail=str(e))
     
-# workspace api
+# workspace api (upload doc and ask qn)
 @app.post("/create_workspace")
 async def create_ws(body:CreateWorkspaceBody):
     try:
         return await create_workspace(name=body.name,description=body.description)
     except Exception as e:
         raise HTTPException(500, detail=str(e))
+
+@app.get("/get_all_workspaces")
+async def get_all_workspaces():
+    try:
+        return {"workspaces": await list_workspaces()}
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
     
-@app.get("/get_workspaces")
+    
+@app.get("/get_workspaces/{ws_id}")
 async def get_ws(ws_id:str):
     try:
         return {"workspaces":await get_workspace(ws_id)}
@@ -94,7 +102,7 @@ async def ws_upload(ws_id: str, file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(500, detail=str(e))
     
-
+# allows qn and answer flow in workspace.
 @app.post("/workspaces/{ws_id}/analyze")
 async def ws_analyze(ws_id: str, body: WorkspaceAnalyzeBody):
     """Chat inside a workspace — same agents as /analyze."""
@@ -118,6 +126,7 @@ async def ws_task(ws_id: str, body: TaskBody):
     except HTTPException:
         raise
     except Exception as e:
+        print(str(e),"exception..")
         raise HTTPException(500, detail=str(e))
 
 

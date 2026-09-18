@@ -18,6 +18,22 @@ class PlanOutput(BaseModel):
     )
     reasoning: str = Field(description="Why these tasks were chosen")
 
+"""
+plan output structure:
+
+{
+  "plan": [
+    "summarize",
+    "profile_data",
+    "find_risks",
+    "extract_requirements",
+    "generate_brd"
+  ],
+  "reasoning": "Goal asks for analysis of PDF + CSV and a leadership brief. Start with summarize and profile_data for overview, then find_risks and extract_requirements for BA detail, finish with generate_brd for the packaged deliverable."
+}
+"""
+
+
 class FinalBrief(BaseModel):
     title: str
     executive_summary: str
@@ -27,7 +43,7 @@ class FinalBrief(BaseModel):
     recommendations: list[str] = []
     open_questions: list[str] = []
 
-class OrchestratorState(TypedDict):
+class OrchestratorState(TypedDict): #final synth_node response structure
     goal: str
     ws_id: str
     session_id: str
@@ -81,6 +97,7 @@ def filter_docs_for_task(doc:list,task_type:str)->list:
     return [d for d in doc if d["type"] in allowed]
 
 def build_graph(llm,embed_model):
+
     async def plan_node(state:OrchestratorState)->dict:
         chain = PLAN_PROMPT|llm.with_structured_output(PlanOutput)
         output=await asyncio.to_thread(chain.invoke,{"goal":state["goal"],"doc_summary":doc_summary(state['docs'])})
@@ -152,7 +169,7 @@ def build_graph(llm,embed_model):
     graph.add_edge("synthesize", END)
     return graph.compile()
 
-
+# main entry point.
 async def run_orchestrator(llm,embed_model,ws_id: str,goal: str,session_id: str,document_ids: list[str] | None = None,params: dict | None = None,)->dict:
     ws = await get_workspace(ws_id)
     ws_doc_ids = ws.get("document_ids", [])

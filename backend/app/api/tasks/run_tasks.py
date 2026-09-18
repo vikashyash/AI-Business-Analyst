@@ -46,7 +46,7 @@ async def run_ba_task(llm, embed_model, ws_id, body) -> dict:
                 raise HTTPException(400, detail=f"Document {doc_id} is not in this workspace")
             docs.append(await get_document(doc_id))
 
-        required_types = TASK_DOC_REQUIREMENTS[body.task_type]
+        required_types = TASK_DOC_REQUIREMENTS[body.task_type] # file extension verification
         if not any(d["type"] in required_types for d in docs):
             raise HTTPException(
                 400,
@@ -70,5 +70,7 @@ async def run_ba_task(llm, embed_model, ws_id, body) -> dict:
             "result": result,
             "saved_as": saved_as,
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(500, detail=str(e))
