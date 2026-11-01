@@ -8,17 +8,22 @@ from ...config import UPLOAD_DIR, MAX_BYTES
 from ..services import detect_file_type, is_supported
 from .kb_insertion import process_file_for_insertion
 
+def _manifest_path():
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    return UPLOAD_DIR / "manifest.json"
+
+
 def _manifest():
     try:
-        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-        p = UPLOAD_DIR / "manifest.json"
+        p = _manifest_path()
         return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
     except Exception as e:
         raise RuntimeError(f"manifest read failed: {e}") from e
 
+
 def _write(data):
     try:
-        (UPLOAD_DIR / "manifest.json").write_text(json.dumps(data, indent=2), encoding="utf-8")
+        _manifest_path().write_text(json.dumps(data, indent=2), encoding="utf-8")
     except Exception as e:
         raise RuntimeError(f"manifest write failed: {e}") from e
 

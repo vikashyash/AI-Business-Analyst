@@ -16,3 +16,10 @@ class TaskBody(BaseModel):
     document_ids: list[str]
     session_id: str
     params: dict = {}
+
+class RunBody(BaseModel):
+    goal:str
+    session_id:str
+    document_ids:Optional[list[str]]=None
+    params:dict={}
+    

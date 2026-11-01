@@ -1,6 +1,5 @@
 import asyncio
 from langchain.agents import create_agent
-from langchain_core.tools import tool
 from langgraph.checkpoint.memory import InMemorySaver
 from ..kb_handler.kb_insertion import create_retrieve_persistent_client
 from pydantic import BaseModel, Field
@@ -145,20 +144,12 @@ def _format_retrieval_result(result: dict) -> str:
 
 def _get_rag_agent(llm, doc_id: str, embed_model):
     if doc_id not in _agents:
-        @tool
-        def search_document(query: str) -> str:
-            """Search the uploaded document for relevant passages with quality-checked retrieval."""
-            result = retrieve_with_quality_loop(
-                llm=llm,
-                question=query,
-                doc_id=doc_id,
-                embed_model=embed_model,
-            )
-            return _format_retrieval_result(result)
+        from .tools import make_doc_search_tool
 
+        search_tool = make_doc_search_tool(llm,doc_id,embed_model,doc_id)
         _agents[doc_id] = create_agent(
             model=llm,
-            tools=[search_document],
+            tools=[search_tool],
             system_prompt=(
                 "You are a business analyst. "
                 "Always call search_document first to ground your answer in the document. "

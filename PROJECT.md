@@ -26,6 +26,8 @@
 
 ---
 
+
+
 ## 1. Overview
 
 **AI Business Analyst** is a backend application that ingests business documents (PDF, CSV, TXT), indexes them for retrieval, and runs multiple types of AI agents to support BA work.
@@ -37,7 +39,7 @@ The system is a **dual-mode platform**:
 
 Both modes share the same agent engine. BA is **added on top** of chat — nothing is replaced.
 
-### Design philosophy
+### Design philosophy 
 
 > **Build the full agent stack once. Learn every core agent concept in this single project.**
 
@@ -45,29 +47,37 @@ There is no phased upgrade plan. Every layer — worker agents, task agents, too
 
 ### Implementation status
 
-| Capability | Status |
-| ---------- | ------ |
-| Upload PDF, CSV, TXT files | ✅ Implemented |
-| List uploaded documents | ✅ Implemented |
-| Q&A on PDF/Text via Agentic RAG agent | ✅ Implemented |
-| Q&A on CSV via Pandas agent | ✅ Implemented |
-| Multi-turn chat memory | ✅ Implemented |
-| Agentic retrieval (grade + rewrite loop) | ✅ Implemented |
-| Workspaces (project container) | 🔲 In progress |
-| Shared agent tools (`tools.py`) | 🔲 To build |
-| BA task agents (requirements, summarize, risks) | 🔲 To build |
-| LangGraph orchestrator (`/run`) | 🔲 To build |
-| Deliverable storage per workspace | 🔲 To build |
+
+| Capability                                      | Status         |
+| ----------------------------------------------- | -------------- |
+| Upload PDF, CSV, TXT files                      | ✅ Implemented  |
+| List uploaded documents                         | ✅ Implemented  |
+| Q&A on PDF/Text via Agentic RAG agent           | ✅ Implemented  |
+| Q&A on CSV via Pandas agent                     | ✅ Implemented  |
+| Multi-turn chat memory                          | ✅ Implemented  |
+| Agentic retrieval (grade + rewrite loop)        | ✅ Implemented  |
+| Workspaces (project container)                  | 🔲 In progress |
+| Shared agent tools (`tools.py`)                 | 🔲 To build    |
+| BA task agents (requirements, summarize, risks) | 🔲 To build    |
+| LangGraph orchestrator (`/run`)                 | 🔲 To build    |
+| Deliverable storage per workspace               | 🔲 To build    |
+
 
 ---
 
+
+
 ## 2. Vision & Goals
+
+
 
 ### Primary goals
 
 1. **Portfolio project** — Demonstrate a complete agentic system: RAG, tools, structured outputs, multi-agent orchestration, memory.
 2. **Practical learning** — Learn all major agent concepts by building one real BA product, not toy examples spread across phases.
 3. **Business value** — Automate junior BA work: document analysis, requirements extraction, data profiling, report generation.
+
+
 
 ### End-state (built as one system)
 
@@ -93,38 +103,48 @@ There is no phased upgrade plan. Every layer — worker agents, task agents, too
 
 ---
 
+
+
 ## 3. What a Business Analyst Does
 
 A junior Business Analyst bridges business stakeholders and technical teams.
 
-| BA activity | What the agent system does |
-| ----------- | --------------------------- |
-| Read reports and data | RAG agent + CSV agent search and analyze |
-| Extract requirements | Requirements task agent |
-| Summarize for leadership | Summarize task agent |
-| Find risks and assumptions | Risks task agent |
-| Profile datasets | Profile task agent (CSV tool) |
-| Draft BRD / brief | Deliverable agent + orchestrator |
-| Track project artifacts | Workspace deliverable storage |
+
+| BA activity                | What the agent system does               |
+| -------------------------- | ---------------------------------------- |
+| Read reports and data      | RAG agent + CSV agent search and analyze |
+| Extract requirements       | Requirements task agent                  |
+| Summarize for leadership   | Summarize task agent                     |
+| Find risks and assumptions | Risks task agent                         |
+| Profile datasets           | Profile task agent (CSV tool)            |
+| Draft BRD / brief          | Deliverable agent + orchestrator         |
+| Track project artifacts    | Workspace deliverable storage            |
+
 
 **Target:** Automate 70–80% of junior BA document and data work.
 
 ---
 
+
+
 ## 4. Dual-Mode Design: Chatbot + BA
+
+
 
 ### Design principle
 
 > **Keep the chatbot. Add BA task agents. Share tools underneath.**
 
-| Aspect | Chatbot mode | BA mode |
-| ------ | ------------ | ------- |
-| Entry | `POST /analyze` | `POST /workspaces/{id}/tasks` |
-| Input | Free-text `question` | `task_type` + `document_ids` |
-| Who runs | Chat agent (RAG or CSV) | Task agent (LangChain `create_agent`) |
-| Output | Plain `answer` string | Structured JSON deliverable (saved) |
-| Memory | Session thread per doc | Session thread per task |
-| Use case | Explore, clarify, follow-up | Formal BA outputs |
+
+| Aspect   | Chatbot mode                | BA mode                               |
+| -------- | --------------------------- | ------------------------------------- |
+| Entry    | `POST /analyze`             | `POST /workspaces/{id}/tasks`         |
+| Input    | Free-text `question`        | `task_type` + `document_ids`          |
+| Who runs | Chat agent (RAG or CSV)     | Task agent (LangChain `create_agent`) |
+| Output   | Plain `answer` string       | Structured JSON deliverable (saved)   |
+| Memory   | Session thread per doc      | Session thread per task               |
+| Use case | Explore, clarify, follow-up | Formal BA outputs                     |
+
 
 Both modes call the **same shared tools** (`search_document`, `analyze_csv`) defined in `agents/tools.py`.
 
@@ -138,7 +158,11 @@ Both modes call the **same shared tools** (`search_document`, `analyze_csv`) def
 
 ---
 
+
+
 ## 5. System Architecture
+
+
 
 ### Full architecture (single build target)
 
@@ -185,6 +209,8 @@ Both modes call the **same shared tools** (`search_document`, `analyze_csv`) def
        └─────────────────────────────────┘
 ```
 
+
+
 ### Agent hierarchy (4 layers — all built together)
 
 ```
@@ -199,7 +225,11 @@ Layer 0 — Retrieval sub-loop     grade + rewrite + retry (inside search tool)
 
 ---
 
+
+
 ## 6. Project Structure
+
+
 
 ### Current + complete target
 
@@ -247,21 +277,27 @@ AI-Business-Analyst/
 
 ---
 
+
+
 ## 7. Tech Stack
 
-| Layer | Technology | Used for |
-| ----- | ---------- | -------- |
-| API | FastAPI + Uvicorn | REST endpoints |
-| LLM | Google Gemini (`langchain-google-genai`) | All agents and graders |
-| Chat agents | LangChain `create_agent` | RAG chat, CSV chat |
-| Task agents | LangChain `create_agent` + `@tool` | BA deliverable tasks |
-| Orchestrator | LangGraph `StateGraph` | Multi-step BA workflows |
-| Memory | LangGraph `InMemorySaver` | Chat + task session threads |
-| Structured output | Pydantic + `with_structured_output` | Requirements, summaries, grades |
-| Embeddings | `sentence-transformers/all-mpnet-base-v2` | Vector search |
-| Vector DB | ChromaDB | Per-document chunk storage |
-| CSV | LangChain Pandas agent | Code-executing data analysis |
-| PDF | pdfplumber | Text extraction |
+
+| Layer             | Technology                                | Used for                        |
+| ----------------- | ----------------------------------------- | ------------------------------- |
+| API               | FastAPI + Uvicorn                         | REST endpoints                  |
+| LLM               | Google Gemini (`langchain-google-genai`)  | All agents and graders          |
+| Chat agents       | LangChain `create_agent`                  | RAG chat, CSV chat              |
+| Task agents       | LangChain `create_agent` + `@tool`        | BA deliverable tasks            |
+| Orchestrator      | LangGraph `StateGraph`                    | Multi-step BA workflows         |
+| Memory            | LangGraph `InMemorySaver`                 | Chat + task session threads     |
+| Structured output | Pydantic + `with_structured_output`       | Requirements, summaries, grades |
+| Embeddings        | `sentence-transformers/all-mpnet-base-v2` | Vector search                   |
+| Vector DB         | ChromaDB                                  | Per-document chunk storage      |
+| CSV               | LangChain Pandas agent                    | Code-executing data analysis    |
+| PDF               | pdfplumber                                | Text extraction                 |
+
+
+
 
 ### Required dependencies
 
@@ -275,38 +311,52 @@ pdfplumber pandas pydantic
 
 ---
 
+
+
 ## 8. API Reference
 
 Base URL: `http://localhost:8080`
 
 ### Chatbot endpoints (implemented)
 
-| Method | Path | Purpose |
-| ------ | ---- | ------- |
-| POST | `/upload` | Upload file |
-| GET | `/documents` | List all documents |
-| POST | `/analyze` | Free-form Q&A on one document |
+
+| Method | Path         | Purpose                       |
+| ------ | ------------ | ----------------------------- |
+| POST   | `/upload`    | Upload file                   |
+| GET    | `/documents` | List all documents            |
+| POST   | `/analyze`   | Free-form Q&A on one document |
+
+
+
 
 ### Workspace + BA endpoints (full build)
 
-| Method | Path | Mode | Purpose |
-| ------ | ---- | ---- | ------- |
-| POST | `/workspaces` | Setup | Create project |
-| GET | `/workspaces` | Setup | List projects |
-| GET | `/workspaces/{id}` | Both | Project details + deliverables |
-| POST | `/workspaces/{id}/upload` | Both | Upload file into project |
-| POST | `/workspaces/{id}/analyze` | **Chat** | Q&A scoped to workspace |
-| POST | `/workspaces/{id}/tasks` | **BA** | Run one task agent |
-| POST | `/workspaces/{id}/run` | **BA** | Orchestrator multi-step goal |
+
+| Method | Path                       | Mode     | Purpose                        |
+| ------ | -------------------------- | -------- | ------------------------------ |
+| POST   | `/workspaces`              | Setup    | Create project                 |
+| GET    | `/workspaces`              | Setup    | List projects                  |
+| GET    | `/workspaces/{id}`         | Both     | Project details + deliverables |
+| POST   | `/workspaces/{id}/upload`  | Both     | Upload file into project       |
+| POST   | `/workspaces/{id}/analyze` | **Chat** | Q&A scoped to workspace        |
+| POST   | `/workspaces/{id}/tasks`   | **BA**   | Run one task agent             |
+| POST   | `/workspaces/{id}/run`     | **BA**   | Orchestrator multi-step goal   |
+
+
+
 
 ### When to use which
 
-| User intent | Endpoint |
-| ----------- | -------- |
-| Quick question on one file | `POST /analyze` |
-| Chat inside a project | `POST /workspaces/{id}/analyze` |
-| Extract requirements, summarize, find risks | `POST /workspaces/{id}/tasks` |
-| "Analyze everything and write a brief" | `POST /workspaces/{id}/run` |
+
+| User intent                                 | Endpoint                        |
+| ------------------------------------------- | ------------------------------- |
+| Quick question on one file                  | `POST /analyze`                 |
+| Chat inside a project                       | `POST /workspaces/{id}/analyze` |
+| Extract requirements, summarize, find risks | `POST /workspaces/{id}/tasks`   |
+| "Analyze everything and write a brief"      | `POST /workspaces/{id}/run`     |
+
+
+
 
 ### `POST /workspaces/{id}/tasks` — BA task request
 
@@ -318,6 +368,8 @@ Base URL: `http://localhost:8080`
   "params": { "focus": "functional requirements" }
 }
 ```
+
+
 
 ### `POST /workspaces/{id}/tasks` — BA task response
 
@@ -336,19 +388,27 @@ Base URL: `http://localhost:8080`
 }
 ```
 
+
+
 ### Supported task types
 
-| task_type | Agent file | Tools used | Output |
-| --------- | ---------- | ---------- | ------ |
-| `extract_requirements` | `requirements_agent.py` | `search_document` | Requirements JSON |
-| `summarize` | `summarize_agent.py` | `search_document`, `analyze_csv` | Executive summary JSON |
-| `find_risks` | `risks_agent.py` | `search_document` | Risks + assumptions JSON |
-| `profile_data` | `profile_agent.py` | `analyze_csv` | Data profile JSON |
-| `generate_brd` | `deliverable_agent.py` | all tools | BRD draft JSON |
+
+| task_type              | Agent file              | Tools used                       | Output                   |
+| ---------------------- | ----------------------- | -------------------------------- | ------------------------ |
+| `extract_requirements` | `requirements_agent.py` | `search_document`                | Requirements JSON        |
+| `summarize`            | `summarize_agent.py`    | `search_document`, `analyze_csv` | Executive summary JSON   |
+| `find_risks`           | `risks_agent.py`        | `search_document`                | Risks + assumptions JSON |
+| `profile_data`         | `profile_agent.py`      | `analyze_csv`                    | Data profile JSON        |
+| `generate_brd`         | `deliverable_agent.py`  | all tools                        | BRD draft JSON           |
+
 
 ---
 
+
+
 ## 9. Core Components
+
+
 
 ### 9.1 Document Store (`kb_knowledge_file_store.py`)
 
@@ -356,6 +416,8 @@ Base URL: `http://localhost:8080`
 - Maintains `manifest.json`
 - Triggers Chroma indexing for PDF/Text
 - Optional `workspace_id` on each document
+
+
 
 ### 9.2 Knowledge Base Insertion (`kb_insertion.py`)
 
@@ -365,11 +427,15 @@ Fixed indexing pipeline (not agentic — by design):
 parse → clean → chunk → embed → store in Chroma
 ```
 
+
+
 ### 9.3 Workspace Store (`workspace_store.py`)
 
 - CRUD for projects
 - Attach documents to workspace
 - Save deliverable JSON files
+
+
 
 ### 9.4 Task Router (`tasks/run_task.py`)
 
@@ -398,20 +464,26 @@ PDF/Text  → agentic_rag_retrieval
 
 ---
 
+
+
 ## 10. Agent Design
 
 This is the most important section. Every BA task is a **real agent**, not a plain LLM call.
 
 ### 10.1 What is an agent vs a pipeline in this project?
 
-| Component | Type | Why |
-| --------- | ---- | --- |
-| KB indexing (`kb_insertion.py`) | **Pipeline** | Fixed steps, no LLM decisions |
-| Chat RAG (`agentic_rag_retrieval.py`) | **Agent** | LLM decides when/how to call `search_document` |
-| Chat CSV (`csv_agent.py`) | **Agent** | LLM generates and runs Python on DataFrame |
-| BA task agents (`*_agent.py`) | **Agent** | LLM decides how many searches, which queries, when done |
-| Orchestrator (`orchestrator.py`) | **Agent** | LangGraph plans and chains task agents |
-| Retrieval quality loop | **Agentic sub-loop** | Grade → rewrite → retry inside the search tool |
+
+| Component                             | Type                 | Why                                                     |
+| ------------------------------------- | -------------------- | ------------------------------------------------------- |
+| KB indexing (`kb_insertion.py`)       | **Pipeline**         | Fixed steps, no LLM decisions                           |
+| Chat RAG (`agentic_rag_retrieval.py`) | **Agent**            | LLM decides when/how to call `search_document`          |
+| Chat CSV (`csv_agent.py`)             | **Agent**            | LLM generates and runs Python on DataFrame              |
+| BA task agents (`*_agent.py`)         | **Agent**            | LLM decides how many searches, which queries, when done |
+| Orchestrator (`orchestrator.py`)      | **Agent**            | LangGraph plans and chains task agents                  |
+| Retrieval quality loop                | **Agentic sub-loop** | Grade → rewrite → retry inside the search tool          |
+
+
+
 
 ### 10.2 Shared Tools (`agents/tools.py`)
 
@@ -435,6 +507,8 @@ Tools are factories when bound to a specific doc:
 def make_tools(llm, doc_id, embed_model, csv_path=None):
     # returns [search_document] or [search_document, analyze_csv]
 ```
+
+
 
 ### 10.3 Chat RAG Agent (implemented)
 
@@ -462,7 +536,7 @@ Framework: LangChain experimental pandas agent
 
 ### 10.5 BA Task Agents (to build — all follow same pattern)
 
-Every task agent uses **`create_agent` + tools + structured final output**.
+Every task agent uses `create_agent` **+ tools + structured final output**.
 
 Example: Requirements Agent
 
@@ -493,6 +567,8 @@ Task invoked (summarize)
 - LLM picks **different query angles** (risks, KPIs, stakeholders)
 - LLM can **combine doc + CSV** sources dynamically
 - You learn tool-calling, agent loops, and structured output in one place
+
+
 
 ### 10.6 Task Agent template (use for every BA task)
 
@@ -581,23 +657,31 @@ class OrchestratorState(TypedDict):
     final_deliverable: dict
 ```
 
+
+
 ### 10.8 Agent concepts map
 
-| Concept | Where in this project | Framework |
-| ------- | --------------------- | --------- |
-| Tool calling | All agents | LangChain `@tool` |
-| ReAct agent loop | Chat + task agents | `create_agent` |
-| Structured output | Task final step, retrieval grading | Pydantic + `with_structured_output` |
-| Agent memory | Chat + task sessions | LangGraph `InMemorySaver` |
-| Agentic retrieval | Inside `search_document` tool | Custom grade/rewrite loop |
-| Code-executing agent | CSV chat + `analyze_csv` tool | Pandas agent |
-| Multi-agent orchestration | `/run` endpoint | LangGraph `StateGraph` |
-| Task routing | `tasks/run_task.py` | Simple Python dict |
-| RAG | Chroma + embeddings | ChromaDB + sentence-transformers |
+
+| Concept                   | Where in this project              | Framework                           |
+| ------------------------- | ---------------------------------- | ----------------------------------- |
+| Tool calling              | All agents                         | LangChain `@tool`                   |
+| ReAct agent loop          | Chat + task agents                 | `create_agent`                      |
+| Structured output         | Task final step, retrieval grading | Pydantic + `with_structured_output` |
+| Agent memory              | Chat + task sessions               | LangGraph `InMemorySaver`           |
+| Agentic retrieval         | Inside `search_document` tool      | Custom grade/rewrite loop           |
+| Code-executing agent      | CSV chat + `analyze_csv` tool      | Pandas agent                        |
+| Multi-agent orchestration | `/run` endpoint                    | LangGraph `StateGraph`              |
+| Task routing              | `tasks/run_task.py`                | Simple Python dict                  |
+| RAG                       | Chroma + embeddings                | ChromaDB + sentence-transformers    |
+
 
 ---
 
+
+
 ## 11. Data Flow
+
+
 
 ### Chat flow
 
@@ -608,6 +692,8 @@ POST /analyze
   → tool calls → retrieval loop or pandas code
   → answer string
 ```
+
+
 
 ### BA task flow
 
@@ -620,6 +706,8 @@ POST /workspaces/{id}/tasks
   → save_deliverable()
   → JSON response
 ```
+
+
 
 ### Orchestrator flow
 
@@ -634,6 +722,8 @@ POST /workspaces/{id}/run  { "goal": "..." }
 
 ---
 
+
+
 ## 12. Configuration
 
 Create `backend/.env`:
@@ -647,15 +737,19 @@ WORKSPACE_PATH=../workspaces
 MAX_UPLOAD_MB=10
 ```
 
-| Variable | Default | Purpose |
-| -------- | ------- | ------- |
-| `GOOGLE_API_KEY` | — | Gemini API key |
-| `LLM_MODEL` | `gemini-2.5-flash-lite` | Model for all agents |
-| `UPLOAD_DIR` | `uploads` | Uploaded files |
-| `KB` | `kb` | Chroma stores |
-| `WORKSPACE_PATH` | `workspaces` | Project + deliverables |
+
+| Variable         | Default                 | Purpose                |
+| ---------------- | ----------------------- | ---------------------- |
+| `GOOGLE_API_KEY` | —                       | Gemini API key         |
+| `LLM_MODEL`      | `gemini-2.5-flash-lite` | Model for all agents   |
+| `UPLOAD_DIR`     | `uploads`               | Uploaded files         |
+| `KB`             | `kb`                    | Chroma stores          |
+| `WORKSPACE_PATH` | `workspaces`            | Project + deliverables |
+
 
 ---
+
+
 
 ## 13. Setup & Running
 
@@ -665,6 +759,8 @@ pip install -r requirements.txt
 pip install chromadb sentence-transformers langgraph langchain-text-splitters
 python main.py
 ```
+
+
 
 ### Full test flow
 
@@ -695,6 +791,8 @@ curl -X POST http://localhost:8080/workspaces/{ws_id}/run \
 
 ---
 
+
+
 ## 14. Complete Build Checklist
 
 One checklist — no phases. Build top to bottom.
@@ -709,10 +807,14 @@ One checklist — no phases. Build top to bottom.
 - [ ] Fix `main.py` workspace routes (GET `/workspaces`, fix `ws_analyze`)
 - [ ] Pin all dependencies in `requirements.txt`
 
+
+
 ### Shared agent layer
 
 - [ ] Create `agents/tools.py` with `search_document` and `analyze_csv` tools
 - [ ] Refactor RAG chat agent to use shared tool from `tools.py`
+
+
 
 ### BA task agents (each = `create_agent` + tools + structured output)
 
@@ -724,10 +826,14 @@ One checklist — no phases. Build top to bottom.
 - [ ] `tasks/run_task.py` — dispatch dict + save deliverable
 - [ ] `POST /workspaces/{id}/tasks` in `main.py`
 
+
+
 ### Orchestrator
 
 - [ ] `agents/orchestrator.py` — LangGraph StateGraph
 - [ ] `POST /workspaces/{id}/run` in `main.py`
+
+
 
 ### Optional polish
 
@@ -737,35 +843,45 @@ One checklist — no phases. Build top to bottom.
 
 ---
 
+
+
 ## 15. Known Issues & Limitations
 
-| Issue | Notes |
-| ----- | ----- |
-| Session memory in-memory only | Lost on restart — acceptable for portfolio |
-| No authentication | Open API |
-| No CORS | Add when building frontend |
-| CSV `allow_dangerous_code=True` | Dev only |
-| `main.py` has route bugs | `@app.post("list_workspaces")` should be `@app.get("/workspaces")`; `ws_analyze` calls wrong function |
+
+| Issue                           | Notes                                                                                                 |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Session memory in-memory only   | Lost on restart — acceptable for portfolio                                                            |
+| No authentication               | Open API                                                                                              |
+| No CORS                         | Add when building frontend                                                                            |
+| CSV `allow_dangerous_code=True` | Dev only                                                                                              |
+| `main.py` has route bugs        | `@app.post("list_workspaces")` should be `@app.get("/workspaces")`; `ws_analyze` calls wrong function |
+
 
 ---
+
+
 
 ## 16. Agent Concepts You Learn
 
 This single project covers the full agent learning path:
 
-| # | Concept | You build it in |
-| - | ------- | --------------- |
-| 1 | RAG (retrieval augmented generation) | Chroma + embeddings |
-| 2 | Agentic retrieval (grade + rewrite loop) | `retrieve_with_quality_loop` |
-| 3 | Tool calling | `@tool` in `tools.py` |
-| 4 | ReAct agent (reason + act loop) | Chat RAG agent, task agents |
-| 5 | Structured LLM output | Pydantic models on task results |
-| 6 | Session / thread memory | LangGraph `InMemorySaver` |
-| 7 | Code-executing agent | Pandas CSV agent |
-| 8 | Task routing | `tasks/run_task.py` |
-| 9 | Specialized task agents | `requirements_agent.py`, etc. |
-| 10 | Multi-agent orchestration | LangGraph orchestrator |
-| 11 | Dual-mode product design | Chat + BA in one system |
+
+| #   | Concept                                  | You build it in                 |
+| --- | ---------------------------------------- | ------------------------------- |
+| 1   | RAG (retrieval augmented generation)     | Chroma + embeddings             |
+| 2   | Agentic retrieval (grade + rewrite loop) | `retrieve_with_quality_loop`    |
+| 3   | Tool calling                             | `@tool` in `tools.py`           |
+| 4   | ReAct agent (reason + act loop)          | Chat RAG agent, task agents     |
+| 5   | Structured LLM output                    | Pydantic models on task results |
+| 6   | Session / thread memory                  | LangGraph `InMemorySaver`       |
+| 7   | Code-executing agent                     | Pandas CSV agent                |
+| 8   | Task routing                             | `tasks/run_task.py`             |
+| 9   | Specialized task agents                  | `requirements_agent.py`, etc.   |
+| 10  | Multi-agent orchestration                | LangGraph orchestrator          |
+| 11  | Dual-mode product design                 | Chat + BA in one system         |
+
+
+
 
 ### Portfolio talking points
 
@@ -777,7 +893,11 @@ This single project covers the full agent learning path:
 
 ---
 
+
+
 ## Appendix: Quick Reference
+
+
 
 ### Agent vs pipeline in this project
 
@@ -785,6 +905,8 @@ This single project covers the full agent learning path:
 Pipeline (fixed steps):     kb_insertion.py only
 Agent (LLM decides):      everything else
 ```
+
+
 
 ### File responsibility
 
@@ -798,6 +920,8 @@ agents/orchestrator.py → LangGraph multi-step
 workspaces/          → project storage
 kb_handler/          → files + vectors
 ```
+
+
 
 ### Mental model
 
