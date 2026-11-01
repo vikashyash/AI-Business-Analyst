@@ -1,0 +1,185 @@
+
+================================================================================
+AI Business Analyst — Postman Sample Payloads
+Base URL: http://localhost:8080
+================================================================================
+
+--------------------------------------------------------------------------------
+Route name: POST /upload
+Method: POST
+payload structure: {
+  "file": "<select file: .pdf | .csv | .txt>"
+}
+Notes:
+- Key name must be "file"
+- Type: File (not Text)
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Route name: GET /documents
+Method: GET
+payload structure: {}
+Notes:
+- No body required
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Route name: POST /analyze
+Method: POST
+payload structure: {
+  "document_id": "9dbbe443-0951-412a-a1a8-0170ad694b81",
+  "session_id": "chat-session-1",
+  "question": "What are the key points in this document?"
+}
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Route name: POST /create_workspace
+Method: POST
+payload structure: {
+  "name": "Budget Project",
+  "description": "Q1 budget and sales analysis"
+}
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Route name: GET /get_workspaces
+Method: GET
+Query params:
+  ws_id = "YOUR_WORKSPACE_ID"
+payload structure: {}
+Notes:
+- No JSON body
+- Pass workspace id as query param: /get_workspaces?ws_id=YOUR_WORKSPACE_ID
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Route name: POST /workspaces/{ws_id}/upload
+Method: POST
+URL example: /workspaces/YOUR_WORKSPACE_ID/upload
+payload structure: {
+  "file": "<select file: .pdf | .csv | .txt>"
+}
+Notes:
+- Replace {ws_id} in URL with real workspace id
+- Key name must be "file"
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Route name: POST /workspaces/{ws_id}/analyze
+Method: POST
+URL example: /workspaces/YOUR_WORKSPACE_ID/analyze
+payload structure: {
+  "document_id": "9dbbe443-0951-412a-a1a8-0170ad694b81",
+  "session_id": "ws-chat-1",
+  "question": "What are the main budget allocations?"
+}
+Notes:
+- document_id must already be attached to this workspace
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Route name: POST /workspaces/{ws_id}/tasks
+Method: POST
+URL example: /workspaces/YOUR_WORKSPACE_ID/tasks
+
+--- extract_requirements ---
+payload structure: {
+  "task_type": "extract_requirements",
+  "document_ids": ["9dbbe443-0951-412a-a1a8-0170ad694b81"],
+  "session_id": "ba-1",
+  "params": {
+    "focus": "functional requirements and constraints"
+  }
+}
+
+--- summarize ---
+payload structure: {
+  "task_type": "summarize",
+  "document_ids": ["9dbbe443-0951-412a-a1a8-0170ad694b81"],
+  "session_id": "ba-2",
+  "params": {
+    "focus": "key findings and decisions"
+  }
+}
+
+--- find_risks ---
+payload structure: {
+  "task_type": "find_risks",
+  "document_ids": ["9dbbe443-0951-412a-a1a8-0170ad694b81"],
+  "session_id": "ba-3",
+  "params": {
+    "focus": "risks, assumptions, and dependencies"
+  }
+}
+
+--- profile_data ---
+payload structure: {
+  "task_type": "profile_data",
+  "document_ids": ["73bcc974-d423-4ae7-885a-606694b2cd34"],
+  "session_id": "ba-4",
+  "params": {
+    "focus": "row counts, columns, missing values, key stats"
+  }
+}
+
+--- generate_brd ---
+payload structure: {
+  "task_type": "generate_brd",
+  "document_ids": ["9dbbe443-0951-412a-a1a8-0170ad694b81"],
+  "session_id": "ba-5",
+  "params": {
+    "focus": "leadership brief for cost reduction initiative"
+  }
+}
+
+Notes:
+- task_type must be one of:
+  extract_requirements | summarize | find_risks | profile_data | generate_brd
+- params is optional (can be {})
+- document_ids must belong to the workspace
+- profile_data needs CSV; others mainly need PDF/Text
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+Route name: POST /workspaces/{ws_id}/run
+Method: POST
+URL example: /workspaces/YOUR_WORKSPACE_ID/run
+
+--- minimal (use all workspace documents) ---
+payload structure: {
+  "goal": "Analyze the uploaded documents and prepare a leadership brief with key risks and requirements",
+  "session_id": "orch-1"
+}
+
+--- with specific documents ---
+payload structure: {
+  "goal": "Analyze budget PDF and sales CSV, then draft a leadership brief",
+  "session_id": "orch-1",
+  "document_ids": [
+    "9dbbe443-0951-412a-a1a8-0170ad694b81",
+    "73bcc974-d423-4ae7-885a-606694b2cd34"
+  ],
+  "params": {}
+}
+
+Notes:
+- document_ids is optional; if omitted, all workspace docs are used
+- params is optional
+- This route can take several minutes (orchestrator runs multiple agents)
+--------------------------------------------------------------------------------
+
+================================================================================
+Suggested Postman test order
+1) POST /create_workspace
+2) POST /workspaces/{ws_id}/upload   (PDF)
+3) POST /workspaces/{ws_id}/upload   (CSV optional)
+4) POST /workspaces/{ws_id}/analyze
+5) POST /workspaces/{ws_id}/tasks    (any task_type)
+6) POST /workspaces/{ws_id}/run
+================================================================================
+```
+
+---
+
+If you want this saved as a real file in the repo (e.g. `backend/postman_payloads.txt`), switch to **Agent mode** and say: **create the postman payloads txt file**.

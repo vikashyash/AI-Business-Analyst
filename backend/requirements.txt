@@ -1,0 +1,12 @@
+pdfplumber
+pandas
+fastapi
+uvicorn
+python-multipart
+python-dotenv
+langchain
+langchain-core
+langchain-experimental
+langchain-google-genai
+pytest
+httpx
